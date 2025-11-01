@@ -3,10 +3,10 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart'; // Updated import
 import 'package:permission_handler/permission_handler.dart';
-import 'package:pixelwipe/models/rectangle.dart';
+import 'package:pixelwipe/models/bounding_rectangle.dart';
 import 'package:pixelwipe/services/object_removal_service.dart';
-import '../services/object_removal_service.dart' as removal_service;
-import '../models/bounding_rectangle.dart';
+import '../../services/object_removal_service.dart' as removal_service;
+
 
 class ObjectRemovalResultPage extends StatefulWidget {
   final File originalImage;

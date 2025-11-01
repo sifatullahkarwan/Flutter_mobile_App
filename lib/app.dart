@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:pixelwipe/pages/object_removal_setup.dart';
+import 'package:pixelwipe/pages/object_removal/object_removal_setup.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'models/processed_image.dart';
 import 'pages/landing_page.dart';
