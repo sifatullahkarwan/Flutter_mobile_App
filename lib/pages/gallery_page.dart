@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import '../models/processed_image.dart';
 
@@ -112,13 +111,13 @@ class GalleryPage extends StatelessWidget {
                             left: 0,
                             right: 0,
                             child: Container(
-                              height: 40,
+                              height: 60,
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   begin: Alignment.bottomCenter,
                                   end: Alignment.topCenter,
                                   colors: [
-                                    Colors.black.withOpacity(0.6),
+                                    Colors.black.withOpacity(0.8),
                                     Colors.transparent,
                                   ],
                                 ),
@@ -146,17 +145,33 @@ class GalleryPage extends StatelessWidget {
                               ),
                             ),
                           ),
-                          // Timestamp
+                          // Image name and timestamp
                           Positioned(
                             bottom: 8,
                             left: 8,
-                            child: Text(
-                              _formatTimestamp(image.timestamp),
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w500,
-                              ),
+                            right: 8,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  image.name,
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                SizedBox(height: 2),
+                                Text(
+                                  _formatTimestamp(image.timestamp),
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.8),
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],

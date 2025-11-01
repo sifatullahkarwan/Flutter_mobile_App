@@ -1,71 +1,59 @@
 import 'package:purchases_flutter/purchases_flutter.dart';
-import 'dart:io' show Platform;
 
 class RevenueCatService {
   static final RevenueCatService _instance = RevenueCatService._internal();
   factory RevenueCatService() => _instance;
   RevenueCatService._internal();
 
-  // Your RevenueCat API keys
-  static const String appleApiKey = 'appl_your_apple_api_key_here';
-  static const String googleApiKey = 'goog_your_google_api_key_here';
-  
   bool _isSubscribed = false;
   Offerings? _currentOfferings;
 
   Future<void> initialize() async {
     try {
-      await Purchases.setLogLevel(LogLevel.info);
-      
-      PurchasesConfiguration configuration;
-      
-      if (Platform.isIOS || Platform.isMacOS) {
-        configuration = PurchasesConfiguration(appleApiKey);
-      } else if (Platform.isAndroid) {
-        configuration = PurchasesConfiguration(googleApiKey);
-      } else {
-        throw Exception('Platform not supported');
-      }
-      
-      await Purchases.configure(configuration);
-      
-      // Load initial data
-      await _loadSubscriptionStatus();
       await _loadOfferings();
+      await _loadSubscriptionStatus();
+      print('RevenueCat initialized successfully');
     } catch (e) {
-      print('RevenueCat initialization failed: $e');
-    }
-  }
-
-  Future<void> _loadSubscriptionStatus() async {
-    try {
-      final customerInfo = await Purchases.getCustomerInfo();
-      _updateSubscriptionStatus(customerInfo);
-    } catch (e) {
-      print('Error loading subscription status: $e');
+      print('RevenueCat initialization error: $e');
     }
   }
 
   Future<void> _loadOfferings() async {
     try {
-      _currentOfferings = await Purchases.getOfferings();
+      Offerings offerings = await Purchases.getOfferings();
+      if (offerings.current != null) {
+        _currentOfferings = offerings;
+        print('Current offering: ${offerings.current!.identifier}');
+        print('Available packages: ${offerings.current!.availablePackages.length}');
+      }
     } catch (e) {
       print('Error loading offerings: $e');
     }
   }
 
-  void _updateSubscriptionStatus(CustomerInfo customerInfo) {
-    _isSubscribed = customerInfo.entitlements.all['pro']?.isActive == true;
+  Future<void> _loadSubscriptionStatus() async {
+    try {
+      CustomerInfo customerInfo = await Purchases.getCustomerInfo();
+      _isSubscribed = customerInfo.entitlements.active.containsKey("premium");
+      print('Subscription status: $_isSubscribed');
+    } catch (e) {
+      print('Error loading subscription status: $e');
+    }
   }
 
-  bool get isSubscribed => _isSubscribed;
-
-  Offerings? get currentOfferings => _currentOfferings;
+  List<Package> getAvailablePackages() {
+    if (_currentOfferings?.current != null) {
+      List<Package> availablePackages = _currentOfferings!.current!.availablePackages;
+      print('Returning ${availablePackages.length} packages');
+      return availablePackages;
+    }
+    return [];
+  }
 
   Future<bool> purchasePackage(Package package) async {
     try {
-      final purchaserInfo = await Purchases.purchasePackage(package);
-      _updateSubscriptionStatus(purchaserInfo as CustomerInfo);
+      CustomerInfo customerInfo = (await Purchases.purchasePackage(package)) as CustomerInfo;
+      _isSubscribed = customerInfo.entitlements.active.containsKey("premium");
       return _isSubscribed;
     } catch (e) {
       print('Purchase failed: $e');
@@ -75,18 +63,14 @@ class RevenueCatService {
 
   Future<void> restorePurchases() async {
     try {
-      final purchaserInfo = await Purchases.restorePurchases();
-      _updateSubscriptionStatus(purchaserInfo);
+      CustomerInfo customerInfo = await Purchases.restorePurchases();
+      _isSubscribed = customerInfo.entitlements.active.containsKey("premium");
     } catch (e) {
       print('Restore purchases failed: $e');
+      rethrow;
     }
   }
 
-  void addSubscriptionListener(Function(CustomerInfo) listener) {
-    Purchases.addCustomerInfoUpdateListener(listener);
-  }
-
-  void removeSubscriptionListener(Function(CustomerInfo) listener) {
-    Purchases.removeCustomerInfoUpdateListener(listener);
-  }
+  bool get isSubscribed => _isSubscribed;
+  Offerings? get currentOfferings => _currentOfferings;
 }

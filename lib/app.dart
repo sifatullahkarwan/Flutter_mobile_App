@@ -1,15 +1,13 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:pixelwipe/pages/object_removal/object_removal_setup.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'models/processed_image.dart';
 import 'pages/landing_page.dart';
-import 'pages/paywall_page.dart';
-
 import 'pages/gallery_page.dart';
 import 'pages/home_page.dart';
 import 'package:pixelwipe/services/revenue_cat_service.dart';
+import 'package:pixelwipe/pages/paywall_page.dart';
 
 class App extends StatefulWidget {
   @override
@@ -29,27 +27,13 @@ class _AppState extends State<App> {
   }
 
   Future<void> _initializeApp() async {
-    // Initialize RevenueCat
     await _revenueCat.initialize();
-    
-    // Load initial data
     await _loadInitialData();
-    
-    // Set up subscription listener
-    _setupSubscriptionListener();
-  }
-
-  void _setupSubscriptionListener() {
-    _revenueCat.addSubscriptionListener((customerInfo) {
-      _updateSubscriptionStatus();
-    });
   }
 
   Future<void> _loadInitialData() async {
-    // First check RevenueCat for subscription status
     _updateSubscriptionStatus();
     
-    // Then load local images
     final prefs = await SharedPreferences.getInstance();
     final savedImages = prefs.getString('pixelwipe_images');
 
@@ -69,8 +53,6 @@ class _AppState extends State<App> {
     setState(() {
       _isSubscribed = _revenueCat.isSubscribed;
     });
-    
-    // Also save to local storage for persistence
     _saveSubscriptionStatus();
   }
 
@@ -81,15 +63,13 @@ class _AppState extends State<App> {
 
   void _handleContinueFromLanding() {
     setState(() {
-      _currentPage = 'paywall';
+      _currentPage = 'home';
     });
   }
 
-  void _handleSubscribe() async {
-    // This is now handled by RevenueCat directly
-    // We'll update the status through the subscription listener
+  void _handleShowPaywall() {
     setState(() {
-      _currentPage = 'home';
+      _currentPage = 'paywall';
     });
   }
 
@@ -97,6 +77,7 @@ class _AppState extends State<App> {
     setState(() {
       _currentPage = 'home';
     });
+    _updateSubscriptionStatus();
   }
 
   void _handleSubscriptionComplete() {
@@ -107,17 +88,12 @@ class _AppState extends State<App> {
     _saveSubscriptionStatus();
   }
 
-  void _handleShowPaywall() {
-    setState(() {
-      _currentPage = 'paywall';
-    });
-  }
-
   void _handleSaveImage(String imageData) async {
     final newImage = ProcessedImage(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       data: imageData,
-      timestamp: DateTime.now().millisecondsSinceEpoch,
+      timestamp: DateTime.now().millisecondsSinceEpoch, 
+      name: 'pixelwipe_${DateTime.now().millisecondsSinceEpoch}',
     );
 
     final updatedImages = [newImage, ..._processedImages];
@@ -149,21 +125,29 @@ class _AppState extends State<App> {
     }
   }
 
+  void _handleSaveToGallery(ProcessedImage image) {
+    _handleSaveImage(image.data);
+  }
+
   @override
   Widget build(BuildContext context) {
     switch (_currentPage) {
       case 'landing':
-        return LandingPage(onContinue: _handleContinueFromLanding);
+        return LandingPage(
+          onContinue: _handleContinueFromLanding, 
+          onShowPaywall: _handleShowPaywall,
+        );
       case 'paywall':
         return PaywallPage(
           onClose: _handleClosePaywall,
           onSubscriptionComplete: _handleSubscriptionComplete,
         );
-      case 'object_removal': // New case for object removal
+      case 'object_removal':
         return ObjectRemovalSetupPage(
           onBack: () => setState(() => _currentPage = 'home'),
           onSaveImage: _handleSaveImage,
           onShowPaywall: _handleShowPaywall,
+          onSaveToGallery: _handleSaveToGallery,
         );
       case 'gallery':
         return GalleryPage(
@@ -177,15 +161,9 @@ class _AppState extends State<App> {
           isSubscribed: _isSubscribed,
           processedImages: _processedImages,
           onUpgrade: _handleShowPaywall,
-          onEditNewPhoto: () => setState(() => _currentPage = 'object_removal'), // Changed from 'editor' to 'object_removal'
+          onEditNewPhoto: () => setState(() => _currentPage = 'object_removal'),
           onViewGallery: () => setState(() => _currentPage = 'gallery'),
         );
     }
-  }
-
-  @override
-  void dispose() {
-    _revenueCat.removeSubscriptionListener((_) {});
-    super.dispose();
   }
 }

@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 
 class LandingPage extends StatefulWidget {
   final VoidCallback onContinue;
+  final VoidCallback onShowPaywall;
 
-  const LandingPage({Key? key, required this.onContinue}) : super(key: key);
+  const LandingPage({
+    Key? key, 
+    required this.onContinue,
+    required this.onShowPaywall,
+  }) : super(key: key);
 
   @override
   State<LandingPage> createState() => _LandingPageState();
@@ -210,7 +215,7 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
                         child: SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: widget.onContinue,
+                            onPressed: widget.onShowPaywall, // Opens paywall
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
                               foregroundColor: const Color(0xFF7C3AED),
@@ -228,6 +233,21 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      // Add free version option
+                      TextButton(
+                        onPressed: widget.onContinue,
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white70,
+                        ),
+                        child: Text(
+                          'Continue with Free Version',
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 14 : 16,
+                            decoration: TextDecoration.underline,
                           ),
                         ),
                       ),

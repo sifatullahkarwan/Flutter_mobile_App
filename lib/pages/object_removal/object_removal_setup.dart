@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import '../../models/bounding_rectangle.dart';
+import 'package:pixelwipe/models/processed_image.dart';
+import 'package:pixelwipe/pages/object_removal/object_removal_setup_controller.dart';
 import 'object_removal_setup_controller.dart';
 import 'object_removal_setup_view.dart';
 
@@ -14,7 +14,7 @@ class ObjectRemovalSetupPage extends StatefulWidget {
     Key? key,
     required this.onBack,
     required this.onSaveImage,
-    required this.onShowPaywall,
+    required this.onShowPaywall, required void Function(ProcessedImage image) onSaveToGallery,
   }) : super(key: key);
 
   @override
@@ -27,7 +27,7 @@ class _ObjectRemovalSetupPageState extends State<ObjectRemovalSetupPage> {
   @override
   void initState() {
     super.initState();
-    _controller.setContext(context);
+    // No need to set context, remove this line
   }
 
   @override
@@ -36,7 +36,7 @@ class _ObjectRemovalSetupPageState extends State<ObjectRemovalSetupPage> {
       controller: _controller,
       onBack: widget.onBack,
       onSaveImage: widget.onSaveImage,
-      onShowPaywall: widget.onShowPaywall,
+      onShowPaywall: widget.onShowPaywall, onSaveToGallery: (ProcessedImage p1) {  },
     );
   }
 }

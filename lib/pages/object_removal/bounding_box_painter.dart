@@ -5,93 +5,167 @@ class BoundingBoxPainter extends CustomPainter {
   final List<Offset> points;
   final List<BoundingRectangle> boxes;
   final bool isDrawing;
-  final Size? imageSize;
+  final Size imageSize;
+  final bool isPolygonMode;
+  final BoundingRectangle? selectedBox;
+  final double zoomLevel;
 
   BoundingBoxPainter({
     required this.points,
     required this.boxes,
     required this.isDrawing,
     required this.imageSize,
+    this.isPolygonMode = false,
+    this.selectedBox,
+    this.zoomLevel = 1.0,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final pointPaint = Paint()
+    final paint = Paint()
       ..color = Colors.red
-      ..strokeWidth = 3
-      ..strokeCap = StrokeCap.round;
+      ..strokeWidth = 1.0 / zoomLevel
+      ..style = PaintingStyle.stroke;
 
-    final linePaint = Paint()
+    final selectedPaint = Paint()
       ..color = Colors.blue
-      ..strokeWidth = 2
+      ..strokeWidth = 1.0 / zoomLevel
       ..style = PaintingStyle.stroke;
 
-    final boxPaint = Paint()
-      ..color = Color(0xFFFF6B35)
-      ..strokeWidth = 3
+    final fillPaint = Paint()
+      ..color = Colors.red.withOpacity(0.1)
+      ..style = PaintingStyle.fill;
+
+    final selectedFillPaint = Paint()
+      ..color = Colors.blue.withOpacity(0.15)
+      ..style = PaintingStyle.fill;
+
+    final handlePaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+
+    final handleBorderPaint = Paint()
+      ..color = Colors.blue
+      ..strokeWidth = 2.0 / zoomLevel
       ..style = PaintingStyle.stroke;
 
-    // Draw existing bounding boxes
-    for (final box in boxes) {
-      if (imageSize != null) {
-        // Convert normalized coordinates back to absolute for display
-        final absX1 = box.x1 * imageSize!.width;
-        final absY1 = box.y1 * imageSize!.height;
-        final absX2 = box.x2 * imageSize!.width;
-        final absY2 = box.y2 * imageSize!.height;
-
-        final rect = Rect.fromLTRB(absX1, absY1, absX2, absY2);
-        canvas.drawRect(rect, boxPaint);
-        
-        // Add box number
-        _drawText(canvas, '${boxes.indexOf(box) + 1}', 
-            Offset(absX1 + 5, absY1 + 5));
-      }
-    }
-
-    // Draw current points and connecting lines
+    // Draw current points being placed
     if (isDrawing) {
-      // Draw points
       for (final point in points) {
-        canvas.drawCircle(point, 6, pointPaint);
-        // Draw point number
-        _drawText(canvas, '${points.indexOf(point) + 1}', point + Offset(8, -8));
-      }
-
-      // Draw connecting lines
-      if (points.length > 1) {
-        for (int i = 0; i < points.length - 1; i++) {
-          canvas.drawLine(points[i], points[i + 1], linePaint);
+        // Draw point
+        canvas.drawCircle(point, 6 / zoomLevel, Paint()..color = Colors.red);
+        
+        // Draw remove button (X) for each point in polygon mode
+        if (isPolygonMode) {
+          canvas.drawCircle(point, 8 / zoomLevel, Paint()..color = Colors.red);
+          
+          // Draw X mark
+          final xPaint = Paint()
+            ..color = Colors.white
+            ..strokeWidth = 2.0 / zoomLevel
+            ..style = PaintingStyle.stroke;
+          
+          canvas.drawLine(
+            Offset(point.dx - 6 / zoomLevel, point.dy - 6 / zoomLevel),
+            Offset(point.dx + 6 / zoomLevel, point.dy + 6 / zoomLevel),
+            xPaint,
+          );
+          canvas.drawLine(
+            Offset(point.dx + 6 / zoomLevel, point.dy - 6 / zoomLevel),
+            Offset(point.dx - 6 / zoomLevel, point.dy + 6 / zoomLevel),
+            xPaint,
+          );
         }
       }
 
-      // Connect last point to first point if we have 4 points
-      if (points.length == 4) {
-        canvas.drawLine(points[3], points[0], linePaint);
+      // Draw connecting lines for current points
+      if (points.length > 1) {
+        for (int i = 0; i < points.length - 1; i++) {
+          canvas.drawLine(points[i], points[i + 1], paint);
+        }
+        
+        // Close the polygon if in polygon mode
+        if (isPolygonMode && points.length > 2) {
+          canvas.drawLine(points.last, points.first, paint);
+        }
+      }
+    }
+
+    // Draw completed bounding boxes
+    for (final box in boxes) {
+      final isSelected = selectedBox == box;
+      final currentPaint = isSelected ? selectedPaint : paint;
+      final currentFillPaint = isSelected ? selectedFillPaint : fillPaint;
+
+      if (box.isPolygon) {
+        // Draw polygon
+        if (box.polygonPoints.length > 2) {
+          final path = Path();
+          path.moveTo(box.polygonPoints[0].dx, box.polygonPoints[0].dy);
+          for (int i = 1; i < box.polygonPoints.length; i++) {
+            path.lineTo(box.polygonPoints[i].dx, box.polygonPoints[i].dy);
+          }
+          path.close();
+          
+          canvas.drawPath(path, currentFillPaint);
+          canvas.drawPath(path, currentPaint);
+          
+          // Draw polygon points with remove buttons
+          for (int i = 0; i < box.polygonPoints.length; i++) {
+            final point = box.polygonPoints[i];
+            canvas.drawCircle(point, 6 / zoomLevel, Paint()..color = Colors.red);
+            
+            // Draw remove button for selected polygons
+            if (isSelected) {
+              canvas.drawCircle(point, 12 / zoomLevel, Paint()..color = Colors.red);
+              
+              // Draw X mark
+              final xPaint = Paint()
+                ..color = Colors.white
+                ..strokeWidth = 2.0 / zoomLevel
+                ..style = PaintingStyle.stroke;
+              
+              canvas.drawLine(
+                Offset(point.dx - 6 / zoomLevel, point.dy - 6 / zoomLevel),
+                Offset(point.dx + 6 / zoomLevel, point.dy + 6 / zoomLevel),
+                xPaint,
+              );
+              canvas.drawLine(
+                Offset(point.dx + 6 / zoomLevel, point.dy - 6 / zoomLevel),
+                Offset(point.dx - 6 / zoomLevel, point.dy + 6 / zoomLevel),
+                xPaint,
+              );
+            }
+          }
+        }
+      } else {
+        // Draw rectangle
+        final rect = Rect.fromLTRB(box.x1, box.y1, box.x2, box.y2);
+        
+        // Draw filled rectangle
+        canvas.drawRect(rect, currentFillPaint);
+        
+        // Draw border
+        canvas.drawRect(rect, currentPaint);
+        
+        // Draw resize handles for selected rectangles
+        if (isSelected) {
+          final handles = box.resizeHandles;
+          for (final handle in handles) {
+            canvas.drawCircle(handle, 6 / zoomLevel, handleBorderPaint);
+            canvas.drawCircle(handle, 4 / zoomLevel, handlePaint);
+          }
+        } else {
+          // Draw corner points for non-selected rectangles
+          canvas.drawCircle(Offset(box.x1, box.y1), 4 / zoomLevel, Paint()..color = Colors.red);
+          canvas.drawCircle(Offset(box.x2, box.y1), 4 / zoomLevel, Paint()..color = Colors.red);
+          canvas.drawCircle(Offset(box.x1, box.y2), 4 / zoomLevel, Paint()..color = Colors.red);
+          canvas.drawCircle(Offset(box.x2, box.y2), 4 / zoomLevel, Paint()..color = Colors.red);
+        }
       }
     }
   }
 
-  void _drawText(Canvas canvas, String text, Offset position) {
-    final textStyle = TextStyle(
-      color: Colors.white,
-      fontSize: 12,
-      fontWeight: FontWeight.bold,
-    );
-    final textSpan = TextSpan(text: text, style: textStyle);
-    final textPainter = TextPainter(
-      text: textSpan,
-      textDirection: TextDirection.ltr,
-    );
-    textPainter.layout();
-    textPainter.paint(canvas, position);
-  }
-
   @override
-  bool shouldRepaint(covariant BoundingBoxPainter oldDelegate) {
-    return points != oldDelegate.points || 
-           boxes != oldDelegate.boxes || 
-           isDrawing != oldDelegate.isDrawing ||
-           imageSize != oldDelegate.imageSize;
-  }
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
