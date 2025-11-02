@@ -44,9 +44,9 @@ Designed with a **modern, intuitive UI** and powered by **Firebase** for seamles
 4. The enhanced image is displayed with before/after comparison.  
 5. Users can **save, share, or store** the enhanced image in Firebase Cloud Storage.
 
-<img src="landing.png" width="200" style="display:block; margin-bottom:10px;" />
-<img src="home.png" width="200" style="display:block; margin-bottom:10px;" />
-<img src="homere.png" width="200" style="display:block; margin-bottom:10px;" />
+<img src="landing.png" width="200" />
+<img src="home.png" width="200" />
+<img src="homere.png" width="200" m/>
 
 ---
 
