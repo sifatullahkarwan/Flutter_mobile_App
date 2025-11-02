@@ -1,21 +1,21 @@
-# 🧠 Flutter AI Image Enhancer
+#  Flutter AI Image Enhancer
 
 A **Flutter-based AI-powered image enhancement app** that uses advanced artificial intelligence models to automatically enhance image quality, color, and clarity.  
 Designed with a **modern, intuitive UI** and powered by **Firebase** for seamless authentication, data storage, and cloud connectivity.
 
 ---
 
-## 🚀 Features
+##  Features
 
-✨ **AI Image Enhancement**  
+ **AI Image Enhancement**  
 - Automatically improves brightness, contrast, and sharpness.  
 - Works with all types of images — portraits, landscapes, low-light, or noisy images.  
 
-🎨 **Beautiful UI**  
+ **Beautiful UI**  
 - Built with Flutter’s Material 3 design principles.  
 - Smooth transitions, responsive layout, and clean user experience.  
 
-☁️ **Firebase Integration**  
+ **Firebase Integration**  
 - Secure user authentication (Email/Google Sign-In).  
 - Cloud Storage for saving and retrieving enhanced images.  
 - Real-time Database or Firestore support for managing user data.
@@ -25,7 +25,7 @@ Designed with a **modern, intuitive UI** and powered by **Firebase** for seamles
 
 ---
 
-## 🧩 Tech Stack
+##  Tech Stack
 
 | Technology | Purpose |
 |-------------|----------|
@@ -36,7 +36,7 @@ Designed with a **modern, intuitive UI** and powered by **Firebase** for seamles
 
 ---
 
-## 🧠 How It Works
+##  How It Works
 
 1. **Upload or capture** an image.
 2. 
@@ -50,7 +50,7 @@ Designed with a **modern, intuitive UI** and powered by **Firebase** for seamles
 
 ---
 
-## 🛠️ Installation & Setup
+##  Installation & Setup
 
 ### Prerequisites
 - Flutter SDK (latest stable version)  
